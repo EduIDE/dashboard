@@ -9,14 +9,14 @@
   --bg: #f5f6f8; --card: #fff; --raised: #fafbfc; --text: #1b2130; --muted: #687387; --line: #e3e6eb; --line-strong: #d3d8df;
   --accent: #2f6fdf; --ok: #1a8a4a; --warn: #b26a00; --bad: #cc3330; --chip-l: 34%;
   --ok-bg: #e5f5ec; --warn-bg: #fdf1dc; --bad-bg: #fde8e7; --accent-bg: #e8f0fe;
-  --shadow: 0 1px 2px rgb(16 24 40 / .05);
+  --shadow: 0 1px 2px rgb(16 24 40 / .05); --prod: #7b5bd6;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f1218; --card: #171b23; --raised: #1c212b; --text: #e6e9ef; --muted: #98a2b3; --line: #262c37; --line-strong: #323946;
     --accent: #79a6ff; --ok: #4cc782; --warn: #f0b34a; --bad: #ff7470; --chip-l: 74%;
     --ok-bg: #12301f; --warn-bg: #362a12; --bad-bg: #3a1a1a; --accent-bg: #1a2742;
-    --shadow: none;
+    --shadow: none; --prod: #a48cf5;
   }
 }
 * { box-sizing: border-box; }
@@ -118,6 +118,39 @@ td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
 .link:hover { color: var(--accent); }
 .desc { color: var(--muted); font-size: 12.5px; white-space: normal; max-width: 360px; }
 
+/* Activity */
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px; }
+.panel h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; margin: 0 0 12px; }
+.panel h2 .muted { font-weight: 400; }
+.stat em { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.seg { display: inline-flex; gap: 4px; margin-left: auto; }
+.seg .btn[aria-pressed=true] { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.cols, .weeks { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+.cols { height: 200px; }
+.cols.short { height: 120px; }
+.wk { display: flex; flex-direction: column; min-width: 0; }
+.wk > div { flex: 1; display: flex; min-height: 0; }
+.wk .up { flex-direction: column-reverse; padding-top: 16px; }
+.wk .down { flex-direction: column; padding-bottom: 16px; border-top: 1px solid var(--line-strong); }
+.wk i { flex: none; margin: 0 18%; border-top: 1px solid var(--card); }
+.wk .up i:last-of-type { border-radius: 3px 3px 0 0; }
+.wk .down i:last-of-type { border-radius: 0 0 3px 3px; }
+.wk span, .weeks span { flex: none; font-size: 11px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.weeks { margin-top: 4px; }
+.s-in { background: var(--accent); } .s-ok { background: var(--ok); } .s-warn { background: var(--warn); }
+.s-prod { background: var(--prod); } .s-pages { background: var(--line-strong); } .s-bad { background: var(--bad); }
+.lane { display: grid; grid-template-columns: 340px minmax(0, 1fr); align-items: center; gap: 12px; padding: 3px 0; }
+.lane-name { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 12.5px; }
+.lane-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track { position: relative; height: 22px; border-radius: 6px; background: repeating-linear-gradient(to right, var(--line) 0 1px, var(--raised) 1px calc(100% / 14)); }
+.dot { position: absolute; top: 50%; width: 11px; height: 11px; translate: -50% -50%; border-radius: 50%; border: 2px solid var(--card); }
+.days { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); font-size: 11px; color: var(--muted); }
+.heat { display: grid; grid-template-columns: 150px repeat(12, minmax(0, 1fr)); gap: 3px; align-items: center; }
+.heat .hd { font-size: 11px; color: var(--muted); text-align: center; white-space: nowrap; }
+.heat .cell { height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-variant-numeric: tabular-nums; background: color-mix(in srgb, var(--accent) var(--p, 0%), var(--raised)); }
+
 @media (max-width: 1000px) {
   .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pr-row, .issue-row { grid-template-columns: 130px minmax(0, 1fr) 64px; }
@@ -133,6 +166,11 @@ td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
   .pr-row .badges, .issue-row .avs-cell { grid-column: 1 / -1; justify-content: flex-start; }
   .desc { display: none; }
   #count { margin-left: 0; }
+  .lane { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 5px 0; }
+  .lane-name { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .heat { grid-template-columns: 100px repeat(12, minmax(0, 1fr)); }
+  .weeks span:nth-child(odd), .days span:nth-child(odd), .wk span { visibility: hidden; }
+  .seg { margin-left: 0; }
 }
 </style>
 </head>
@@ -140,7 +178,7 @@ td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
 <main>
   <header>
     <h1>EduIDE Dashboard</h1>
-    <span class="muted" id="updated">Loading...</span>
+    <span class="muted"><span id="updated">Loading...</span> · <a href="https://github.com/EduIDE/dashboard" title="Source of this page">dashboard repo ↗</a></span>
   </header>
 
   <section class="stats" id="stats"></section>
@@ -153,7 +191,7 @@ td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
     </div>
     <div class="selects">
       <select id="repo" aria-label="Repository"><option value="">All repos</option></select>
-      <select id="author" aria-label="Author" data-tabs="prs issues"><option value="">All authors</option></select>
+      <select id="author" aria-label="Author" data-tabs="prs issues activity"><option value="">All authors</option></select>
       <select id="assignee" aria-label="Assignee" data-tabs="prs issues"><option value="">Any assignee</option><option value="-">Unassigned</option></select>
       <select id="label" aria-label="Label" data-tabs="prs issues"><option value="">Any label</option><option value="-">No label</option></select>
       <select id="status" aria-label="PR status" data-tabs="prs"><option value="">Any PR status</option></select>
@@ -165,7 +203,7 @@ td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
       </select>
     </div>
     <div class="toolrow">
-      <label data-tabs="prs"><input type="checkbox" id="bots"> Show bot PRs</label>
+      <label data-tabs="prs activity"><input type="checkbox" id="bots"> Show bot PRs</label>
       <button type="button" class="btn" id="reset">Reset filters</button>
       <span class="muted" id="count"></span>
     </div>
@@ -205,16 +243,18 @@ const GROUPS = [
 const SHOWN = [["Ready to merge", "ok"], ["Needs review", "warn"], ["Changes requested", "warn"], ["CI failing", "bad"], ["Merge conflicts", "bad"], ["Draft", ""]];
 const groupOf = p => GROUPS.find(([, test]) => test(p))[0];
 
-const TABS = [["prs", "Pull requests"], ["issues", "Issues"], ["repos", "Repositories"]];
+const TABS = [["prs", "Pull requests"], ["issues", "Issues"], ["repos", "Repositories"], ["activity", "Activity"]];
 // Every filter control, kept in the URL so a filtered view can be shared.
 const FIELDS = ["q", "repo", "author", "assignee", "label", "status", "only"];
-let data, tab = "prs";
+const FLOWS = [["prs", "Pull requests"], ["issues", "Issues"], ["deployments", "Deployments"]];
+let data, tab = "prs", flow = "prs";
 
 function readState() {
   const p = new URLSearchParams(location.search);
   for (const f of FIELDS) $(f).value = p.get(f) || "";
   $("bots").checked = p.get("bots") === "1";
   tab = TABS.some(([id]) => id === p.get("tab")) ? p.get("tab") : "prs";
+  flow = FLOWS.some(([id]) => id === p.get("flow")) ? p.get("flow") : "prs";
 }
 
 function writeState() {
@@ -222,6 +262,7 @@ function writeState() {
   if (tab !== "prs") p.set("tab", tab);
   for (const f of FIELDS) if ($(f).value) p.set(f, $(f).value);
   if ($("bots").checked) p.set("bots", "1");
+  if (tab === "activity" && flow !== "prs") p.set("flow", flow);
   history.replaceState(null, "", p.toString() ? "?" + p : location.pathname);
   for (const f of FIELDS.slice(1)) $(f).classList.toggle("active", !!$(f).value);
   for (const el of document.querySelectorAll("[data-tabs]")) el.hidden = !el.dataset.tabs.split(" ").includes(tab);
@@ -304,6 +345,95 @@ function renderRepos(repos) {
   return `<div class="table"><table><thead><tr><th>Repository</th><th>Description</th><th class="r">PRs</th><th class="r">Issues</th><th>Main</th><th>Latest release</th><th class="r">Unreleased</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
+const WEEKS = 12, WEEK = 7 * DAY, MONDAY = Date.UTC(1970, 0, 5);
+const weekOf = t => Math.floor((t - MONDAY) / WEEK);
+const ts = s => s ? +new Date(s) : NaN;
+// Anything that is not obviously a test environment or Pages counts as production.
+const tier = env => /test|staging|e2e|student|preview/i.test(env) ? "test" : env === "github-pages" ? "pages" : "prod";
+const TIERS = [["prod", "Production", "s-prod"], ["test", "Test and staging", "s-in"], ["pages", "Pages", "s-pages"]];
+
+// Stacked weekly columns: `up` grows above the line, `down` below it. Series are [name, values, class].
+function columns(weeks, up, down = [], short = false) {
+  const total = (series, i) => series.reduce((n, [, v]) => n + v[i], 0);
+  const max = Math.max(1, ...weeks.map((_, i) => Math.max(total(up, i), total(down, i))));
+  const bars = (series, i) => series.map(([name, v, cls]) => v[i] ? `<i class="${cls}" style="height:${v[i] / max * 100}%" title="${esc(name)}: ${v[i]}"></i>` : "").join("");
+  const half = (cls, series, i) => `<div class="${cls}">${bars(series, i)}<span>${total(series, i) || ""}</span></div>`;
+  return `<div class="legend">${[...up, ...down].map(([name, , cls]) => `<span><i class="${cls}"></i>${esc(name)}</span>`).join("")}</div>
+    <div class="cols${short ? " short" : ""}">${weeks.map((_, i) => `<div class="wk">${half("up", up, i)}${down.length ? half("down", down, i) : ""}</div>`).join("")}</div>
+    <div class="weeks">${weeks.map(w => `<span>${new Date(MONDAY + w * WEEK).toLocaleDateString("en", { day: "numeric", month: "short", timeZone: "UTC" })}</span>`).join("")}</div>`;
+}
+
+// Open items at the end of each week, walked back from today's open count with the opened and closed events.
+const backlog = (weeks, open, items) => weeks.map(w => {
+  const end = MONDAY + (w + 1) * WEEK;
+  return open - items.filter(x => ts(x.createdAt) >= end).length + items.filter(x => ts(x.closedAt) >= end).length;
+});
+
+function renderActivity() {
+  const now = ts(data.generatedAt), cur = weekOf(now);
+  const weeks = Array.from({ length: WEEKS }, (_, i) => cur - WEEKS + 1 + i);
+  const keep = x => (!$("repo").value || x.repo === $("repo").value) && words().every(w => `${x.repo} ${x.author || ""} ${x.environment || ""}`.toLowerCase().includes(w));
+  const mine = x => keep(x) && (!$("author").value || x.author === $("author").value) && ($("bots").checked || !x.bot);
+  const events = data.events.filter(mine), deploys = data.deployments.filter(keep);
+  const prs = events.filter(e => e.type === "pr"), issues = events.filter(e => e.type === "issue");
+  const perWeek = stamps => weeks.map(w => stamps.filter(s => weekOf(ts(s)) === w).length);
+  const inDays = (stamps, from, to) => stamps.filter(s => ts(s) > now - from * DAY && ts(s) <= now - to * DAY).length;
+
+  const kpis = [
+    ["PRs merged", prs.map(p => p.mergedAt)],
+    ["PRs opened", prs.map(p => p.createdAt)],
+    ["PRs closed unmerged", prs.filter(p => !p.mergedAt).map(p => p.closedAt)],
+    ["issues opened", issues.map(i => i.createdAt)],
+    ["issues closed", issues.map(i => i.closedAt)],
+    ["production deployments", deploys.filter(d => tier(d.environment) === "prod").map(d => d.createdAt)],
+  ].map(([label, stamps]) => {
+    const n = inDays(stamps, 7, 0), before = inDays(stamps, 14, 7), d = n - before;
+    return `<div class="stat"><b>${n}</b><span>${label}</span><em title="previous 7 days: ${before}">${d > 0 ? "+" : ""}${d} vs ${before}</em></div>`;
+  }).join("");
+
+  const flows = {
+    prs: [[["Opened", perWeek(prs.map(p => p.createdAt)), "s-in"]],
+      [["Merged", perWeek(prs.map(p => p.mergedAt)), "s-ok"], ["Closed unmerged", perWeek(prs.filter(p => !p.mergedAt).map(p => p.closedAt)), "s-warn"]]],
+    issues: [[["Opened", perWeek(issues.map(i => i.createdAt)), "s-in"]], [["Closed", perWeek(issues.map(i => i.closedAt)), "s-ok"]]],
+    deployments: [TIERS.map(([id, name, cls]) => [name, perWeek(deploys.filter(d => tier(d.environment) === id).map(d => d.createdAt)), cls])],
+  };
+  const open = { prs: ["pull requests", data.prs.filter(mine).length, prs], issues: ["issues", data.issues.filter(mine).length, issues] }[flow];
+
+  const lanes = {};
+  for (const d of deploys) (lanes[d.repo + "\n" + d.environment] ??= []).push(d);
+  const order = id => TIERS.findIndex(([t]) => t === id);
+  const t0 = Math.floor(now / DAY) * DAY - 13 * DAY;
+  const laneRows = Object.values(lanes)
+    .sort((a, b) => order(tier(a[0].environment)) - order(tier(b[0].environment)) || a[0].repo.localeCompare(b[0].repo) || a[0].environment.localeCompare(b[0].environment))
+    .map(list => {
+      const { repo, environment: env } = list[0], cls = TIERS[order(tier(env))][2];
+      const last = list.reduce((a, d) => d.createdAt > a ? d.createdAt : a, "");
+      const dots = list.filter(d => ts(d.createdAt) >= t0).map(d => {
+        const failed = d.state === "FAILURE" || d.state === "ERROR";
+        return `<i class="dot ${failed ? "s-bad" : cls}" style="left:${(ts(d.createdAt) - t0) / (14 * DAY) * 100}%" title="${esc(env)} · ${new Date(d.createdAt).toLocaleString()}${failed ? " · failed" : ""}"></i>`;
+      }).join("");
+      return `<div class="lane"><div class="lane-name">${chip(repo)}<span title="${esc(env)}">${esc(env)}</span><span class="muted" title="last deployment">${age(last)}</span></div><div class="track">${dots}</div></div>`;
+    }).join("");
+  const days = Array.from({ length: 14 }, (_, i) => `<span>${new Date(t0 + i * DAY).toLocaleDateString("en", { day: "numeric", month: "short", timeZone: "UTC" })}</span>`).join("");
+
+  const merged = prs.filter(p => p.mergedAt && weekOf(ts(p.mergedAt)) > cur - WEEKS);
+  const heat = {};
+  for (const p of merged) (heat[p.repo] ??= weeks.map(() => 0))[weekOf(ts(p.mergedAt)) - weeks[0]]++;
+  const hmax = Math.max(1, ...Object.values(heat).flat());
+  const heatRows = Object.entries(heat).sort((a, b) => b[1].reduce((x, y) => x + y) - a[1].reduce((x, y) => x + y)).map(([repo, v]) =>
+    `<div>${chip(repo)}</div>` + v.map(n => `<div class="cell" style="--p:${n ? Math.round(15 + 85 * n / hmax) : 0}%;${n / hmax > .5 ? "color:var(--card)" : ""}" title="${esc(repo)}: ${n} merged">${n || ""}</div>`).join("")).join("");
+
+  return `<section class="stats" style="margin-bottom:12px" title="Last 7 days compared with the 7 days before">${kpis}</section>
+    <div class="panel"><h2>Weekly flow <span class="muted">last ${WEEKS} weeks, opened above the line, done below</span>
+      <span class="seg">${FLOWS.map(([id, name]) => `<button type="button" class="btn" data-flow="${id}" aria-pressed="${id === flow}">${name}</button>`).join("")}</span></h2>
+      ${columns(weeks, ...flows[flow])}</div>
+    ${open ? `<div class="panel"><h2>Open ${open[0]} at the end of each week <span class="muted">rebuilt from today's open ${open[0]} and the events above</span></h2>${columns(weeks, [["Open " + open[0], backlog(weeks, open[1], open[2]), "s-in"]], [], true)}</div>` : ""}
+    <div class="panel"><h2>Deployments <span class="muted">last 14 days, with the age of the latest deployment per environment; red dots failed</span></h2>
+      ${laneRows ? `${laneRows}<div class="lane"><div></div><div class="days">${days}</div></div>` : '<p class="muted">No deployments match these filters.</p>'}</div>
+    <div class="panel"><h2>Merged PRs per repository and week</h2>
+      ${heatRows ? `<div class="heat"><div></div>${weeks.map((w, i) => `<div class="hd">${(WEEKS - 1 - i) % 2 ? "" : new Date(MONDAY + w * WEEK).toLocaleDateString("en", { day: "numeric", month: "short", timeZone: "UTC" })}</div>`).join("")}${heatRows}</div>` : '<p class="muted">No merged PRs match these filters.</p>'}</div>`;
+}
+
 function render() {
   writeState();
   const status = $("status").value;
@@ -312,8 +442,8 @@ function render() {
   const repos = data.repos.filter(r => (!$("repo").value || r.name === $("repo").value) && words().every(w => `${r.name} ${r.description || ""}`.toLowerCase().includes(w)));
   const counts = { prs: prs.length, issues: issues.length, repos: repos.length };
 
-  $("tabs").innerHTML = TABS.map(([id, name]) => `<button type="button" class="tab" role="tab" data-tab="${id}" aria-selected="${id === tab}">${name}<span class="n">${counts[id]}</span></button>`).join("");
-  $("view").innerHTML = tab === "prs" ? renderPrs(prs) : tab === "issues" ? renderIssues(issues) : renderRepos(repos);
+  $("tabs").innerHTML = TABS.map(([id, name]) => `<button type="button" class="tab" role="tab" data-tab="${id}" aria-selected="${id === tab}">${name}${id in counts ? `<span class="n">${counts[id]}</span>` : ""}</button>`).join("");
+  $("view").innerHTML = tab === "prs" ? renderPrs(prs) : tab === "issues" ? renderIssues(issues) : tab === "repos" ? renderRepos(repos) : renderActivity();
   $("count").textContent = `${prs.length} PRs · ${issues.length} issues · ${repos.length} repos`;
 
   // Tiles count the unfiltered state (except repo), so they stay a stable overview.
@@ -359,7 +489,11 @@ fetch("data.json", { cache: "no-store" })
     for (const id of [...FIELDS, "bots"]) $(id).addEventListener("input", render);
     $("reset").addEventListener("click", () => setFilters({ tab }));
     $("tabs").addEventListener("click", e => { const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; render(); } });
-    $("view").addEventListener("click", e => { const r = e.target.closest("[data-repo]"); if (r) setFilters({ repo: r.dataset.repo, tab: "prs" }); });
+    $("view").addEventListener("click", e => {
+      const r = e.target.closest("[data-repo]"), f = e.target.closest("[data-flow]");
+      if (r) setFilters({ repo: r.dataset.repo, tab: "prs" });
+      if (f) { flow = f.dataset.flow; render(); }
+    });
     addEventListener("keydown", e => {
       if (e.key === "/" && !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); $("q").focus(); }
     });
