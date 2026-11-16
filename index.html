@@ -6,52 +6,134 @@
 <title>EduIDE Dashboard</title>
 <style>
 :root {
-  --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #657084; --line: #e2e5ea;
-  --accent: #2f6fdf; --ok: #1f8a4c; --warn: #b26b00; --bad: #c8322f; --new: #eef4ff;
+  --bg: #f5f6f8; --card: #fff; --raised: #fafbfc; --text: #1b2130; --muted: #687387; --line: #e3e6eb; --line-strong: #d3d8df;
+  --accent: #2f6fdf; --ok: #1a8a4a; --warn: #b26a00; --bad: #cc3330; --chip-l: 34%;
+  --ok-bg: #e5f5ec; --warn-bg: #fdf1dc; --bad-bg: #fde8e7; --accent-bg: #e8f0fe;
+  --shadow: 0 1px 2px rgb(16 24 40 / .05);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #11141a; --card: #1a1e26; --text: #e5e8ee; --muted: #9aa3b2; --line: #2b313c;
-    --accent: #6ea0ff; --ok: #4cc27d; --warn: #e2a33a; --bad: #ff6b66; --new: #1d2a42;
+    --bg: #0f1218; --card: #171b23; --raised: #1c212b; --text: #e6e9ef; --muted: #98a2b3; --line: #262c37; --line-strong: #323946;
+    --accent: #79a6ff; --ok: #4cc782; --warn: #f0b34a; --bad: #ff7470; --chip-l: 74%;
+    --ok-bg: #12301f; --warn-bg: #362a12; --bad-bg: #3a1a1a; --accent-bg: #1a2742;
+    --shadow: none;
   }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 16px; }
-h1 { font-size: 22px; margin: 0; }
-h2 { font-size: 16px; margin: 28px 0 10px; }
-h3 { font-size: 13px; margin: 18px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+main { max-width: 1320px; margin: 0 auto; padding: 24px 24px 56px; }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--accent); }
 .muted { color: var(--muted); }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
-.stat b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
-.filters { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin: 18px -16px 4px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--line); }
-.filters input[type=search], .filters select, .filters button { font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; max-width: 100%; }
-.filters input[type=search] { flex: 1 1 100%; }
-.filters select.active { border-color: var(--accent); }
-.filters button { cursor: pointer; }
-button.stat { font: inherit; color: inherit; text-align: left; cursor: pointer; }
-button.stat:hover { border-color: var(--accent); }
-.list { background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 8px 12px; border-top: 1px solid var(--line); }
-.row:first-child { border-top: 0; }
-.row.new { background: var(--new); }
-.title { min-width: 0; overflow-wrap: anywhere; }
-.meta { font-size: 12px; color: var(--muted); }
-.side { text-align: right; font-size: 12px; white-space: nowrap; }
-.repo { font-weight: 600; color: var(--text); }
-.pill { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--line); margin-left: 4px; }
-.ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
-.empty { padding: 10px 12px; color: var(--muted); }
-table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-th, td { text-align: left; padding: 7px 10px; border-top: 1px solid var(--line); white-space: nowrap; }
-th { font-size: 12px; color: var(--muted); font-weight: 600; }
-td.num { text-align: right; font-variant-numeric: tabular-nums; }
-.tablewrap { overflow-x: auto; }
-@media (max-width: 600px) { .row { grid-template-columns: 1fr; } .side { text-align: left; } .filters { position: static; } }
+[hidden] { display: none !important; }
+
+/* Header */
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 20px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+header .muted { font-size: 13px; }
+
+/* Tiles */
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.stat { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 12px; box-shadow: var(--shadow); font: inherit; color: inherit; text-align: left; overflow: hidden; }
+.stat::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--tone, transparent); }
+.stat b { display: block; font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--tone, var(--text)); }
+.stat span { font-size: 12.5px; color: var(--muted); }
+button.stat { cursor: pointer; transition: border-color .15s, transform .15s; }
+button.stat:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.tone-bad { --tone: var(--bad); } .tone-warn { --tone: var(--warn); } .tone-accent { --tone: var(--accent); }
+
+/* Toolbar */
+.toolbar { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 16px 0; box-shadow: var(--shadow); display: grid; gap: 10px; }
+.search { position: relative; }
+.search svg { position: absolute; left: 10px; top: 50%; translate: 0 -50%; color: var(--muted); }
+.search kbd { position: absolute; right: 10px; top: 50%; translate: 0 -50%; font: 11px ui-monospace, monospace; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 5px; }
+input[type=search], select, .btn { font: inherit; color: inherit; background: var(--raised); border: 1px solid var(--line); border-radius: 7px; padding: 7px 10px; width: 100%; min-width: 0; }
+input[type=search] { padding-left: 32px; }
+input[type=search]:focus, select:focus, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.selects { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 8px; }
+select.active { border-color: var(--accent); background: var(--accent-bg); }
+.toolrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; }
+.toolrow label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.btn { width: auto; cursor: pointer; padding: 5px 12px; }
+.btn:hover { border-color: var(--line-strong); }
+#count { margin-left: auto; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.tab { font: inherit; font-weight: 600; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px 9px; margin-bottom: -1px; cursor: pointer; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); }
+.tab .n { font-weight: 500; font-size: 12px; background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 0 7px; margin-left: 6px; }
+
+/* Groups and rows */
+details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; }
+summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-weight: 600; font-size: 13px; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▸"; color: var(--muted); transition: rotate .15s; }
+details[open] summary::before { rotate: 90deg; }
+details[open] summary { border-bottom: 1px solid var(--line); }
+.count { font-size: 12px; font-weight: 600; min-width: 22px; text-align: center; border-radius: 10px; padding: 0 7px; background: var(--raised); border: 1px solid var(--line); color: var(--muted); }
+.count.bad { background: var(--bad-bg); border-color: transparent; color: var(--bad); }
+.count.warn { background: var(--warn-bg); border-color: transparent; color: var(--warn); }
+.count.ok { background: var(--ok-bg); border-color: transparent; color: var(--ok); }
+.count.accent { background: var(--accent-bg); border-color: transparent; color: var(--accent); }
+
+.row { display: grid; align-items: center; gap: 12px; padding: 9px 14px; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.row:hover { background: var(--raised); }
+.pr-row { grid-template-columns: 150px minmax(0, 1fr) 150px 64px 190px; }
+.issue-row { grid-template-columns: 150px minmax(0, 1fr) 150px 120px 64px; }
+.title { min-width: 0; }
+.title a { font-weight: 500; }
+.num { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.age { text-align: right; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.age.stale { color: var(--warn); }
+.badges { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 4px; }
+.person { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12.5px; color: var(--muted); }
+.person span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.av { width: 20px; height: 20px; border-radius: 50%; background: var(--line); flex: none; }
+.avs { display: flex; }
+.avs .av { margin-right: -5px; border: 2px solid var(--card); width: 22px; height: 22px; }
+.new-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: 1px; }
+
+.chip { --h: 210; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: hsl(var(--h) 65% 50% / .13); color: hsl(var(--h) 55% var(--chip-l)); }
+.label { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 0 7px; margin-left: 6px; white-space: nowrap; vertical-align: 1px; }
+.label i { width: 7px; height: 7px; border-radius: 50%; }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; padding: 1px 8px; border-radius: 10px; white-space: nowrap; }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.b-ok { background: var(--ok-bg); color: var(--ok); }
+.b-warn { background: var(--warn-bg); color: var(--warn); }
+.b-bad { background: var(--bad-bg); color: var(--bad); }
+.b-none { background: var(--raised); color: var(--muted); }
+.empty { background: var(--card); border: 1px dashed var(--line-strong); border-radius: 10px; padding: 28px; text-align: center; color: var(--muted); }
+
+/* Repos */
+.table { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 14px; border-top: 1px solid var(--line); white-space: nowrap; }
+thead th { border-top: 0; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--raised); }
+tbody tr:hover { background: var(--raised); }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.link { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.link:hover { color: var(--accent); }
+.desc { color: var(--muted); font-size: 12.5px; white-space: normal; max-width: 360px; }
+
+@media (max-width: 1000px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pr-row, .issue-row { grid-template-columns: 130px minmax(0, 1fr) 64px; }
+  .pr-row .badges, .issue-row .avs-cell { grid-column: 2 / -1; justify-content: flex-start; }
+  .row .person { display: none; }
+}
+@media (max-width: 600px) {
+  main { padding: 16px 16px 40px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pr-row, .issue-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; }
+  .row .chip-cell { grid-column: 1 / -1; }
+  .row .title { grid-column: 1; }
+  .pr-row .badges, .issue-row .avs-cell { grid-column: 1 / -1; justify-content: flex-start; }
+  .desc { display: none; }
+  #count { margin-left: 0; }
+}
 </style>
 </head>
 <body>
@@ -60,41 +142,37 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
     <h1>EduIDE Dashboard</h1>
     <span class="muted" id="updated">Loading...</span>
   </header>
+
   <section class="stats" id="stats"></section>
 
-  <div class="filters" id="filters">
-    <input type="search" id="q" placeholder="Search title, #number, author, label  (press /)" aria-label="Search">
-    <select id="type" aria-label="Type">
-      <option value="">PRs and issues</option><option value="prs">Only PRs</option><option value="issues">Only issues</option>
-    </select>
-    <select id="repo" aria-label="Repository"><option value="">All repos</option></select>
-    <select id="author" aria-label="Author"><option value="">All authors</option></select>
-    <select id="assignee" aria-label="Assignee"><option value="">Any assignee</option><option value="-">Unassigned</option></select>
-    <select id="label" aria-label="Label"><option value="">Any label</option><option value="-">No label</option></select>
-    <select id="status" aria-label="PR status"><option value="">Any PR status</option></select>
-    <select id="only" aria-label="Quick filter">
-      <option value="">No quick filter</option>
-      <option value="new">New (7 days)</option>
-      <option value="stale">Stale (no update in 14 days)</option>
-      <option value="untriaged">Untriaged (no label, no assignee)</option>
-    </select>
-    <label><input type="checkbox" id="bots"> Show bot PRs</label>
-    <button type="button" id="reset">Reset</button>
-    <span class="muted" id="count"></span>
-  </div>
-
-  <section id="prsection">
-    <h2>Open pull requests</h2>
-    <div id="prs"></div>
+  <section class="toolbar">
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+      <input type="search" id="q" placeholder="Search title, #number, author, assignee, label" aria-label="Search">
+      <kbd>/</kbd>
+    </div>
+    <div class="selects">
+      <select id="repo" aria-label="Repository"><option value="">All repos</option></select>
+      <select id="author" aria-label="Author" data-tabs="prs issues"><option value="">All authors</option></select>
+      <select id="assignee" aria-label="Assignee" data-tabs="prs issues"><option value="">Any assignee</option><option value="-">Unassigned</option></select>
+      <select id="label" aria-label="Label" data-tabs="prs issues"><option value="">Any label</option><option value="-">No label</option></select>
+      <select id="status" aria-label="PR status" data-tabs="prs"><option value="">Any PR status</option></select>
+      <select id="only" aria-label="Quick filter" data-tabs="prs issues">
+        <option value="">No quick filter</option>
+        <option value="new">New (7 days)</option>
+        <option value="stale">Stale (no update in 14 days)</option>
+        <option value="untriaged">Untriaged (no label, no assignee)</option>
+      </select>
+    </div>
+    <div class="toolrow">
+      <label data-tabs="prs"><input type="checkbox" id="bots"> Show bot PRs</label>
+      <button type="button" class="btn" id="reset">Reset filters</button>
+      <span class="muted" id="count"></span>
+    </div>
   </section>
 
-  <section id="issuesection">
-    <h2>Open issues <span class="muted">(newest first, last 7 days highlighted)</span></h2>
-    <div id="issues"></div>
-  </section>
-
-  <h2>Repositories</h2>
-  <div class="tablewrap"><table id="repos"></table></div>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <section id="view"></section>
 </main>
 <script>
 const DAY = 864e5;
@@ -106,11 +184,16 @@ const age = d => {
   const h = ageDays(d) * 24;
   return h < 1 ? Math.max(1, Math.round(h * 60)) + "m" : h < 24 ? Math.round(h) + "h" : Math.round(h / 24) + "d";
 };
-const CI = { SUCCESS: ["ok", "CI ok"], FAILURE: ["bad", "CI failing"], ERROR: ["bad", "CI error"], PENDING: ["warn", "CI running"], EXPECTED: ["warn", "CI waiting"] };
-const ci = s => s && CI[s] ? `<span class="${CI[s][0]}">${CI[s][1]}</span>` : `<span class="muted">no CI</span>`;
-const labels = ls => ls.map(l => `<span class="pill" style="border-color:#${esc(l.color)}">${esc(l.name)}</span>`).join("");
+// Stable colour per repo, so the same repo always gets the same chip.
+const hue = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+const chip = r => `<span class="chip" style="--h:${hue(r)}" title="${esc(r)}">${esc(r)}</span>`;
+const avatar = login => `<img class="av" src="https://github.com/${encodeURIComponent(login)}.png?size=48" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const person = login => login ? `<span class="person">${avatar(login)}<span>${esc(login)}</span></span>` : `<span class="person"></span>`;
+const labels = ls => ls.map(l => `<span class="label"><i style="background:#${esc(l.color)}"></i>${esc(l.name)}</span>`).join("");
+const CI = { SUCCESS: ["ok", "CI passing"], FAILURE: ["bad", "CI failing"], ERROR: ["bad", "CI error"], PENDING: ["warn", "CI running"], EXPECTED: ["warn", "CI waiting"] };
+const ci = s => s && CI[s] ? `<span class="badge b-${CI[s][0]}">${CI[s][1]}</span>` : `<span class="badge b-none">no CI</span>`;
 
-// Order matters: a PR lands in the first group it matches.
+// Order matters: a PR lands in the first group it matches. Display order is SHOWN.
 const GROUPS = [
   ["Draft", p => p.isDraft],
   ["CI failing", p => p.ci === "FAILURE" || p.ci === "ERROR"],
@@ -119,31 +202,35 @@ const GROUPS = [
   ["Ready to merge", p => p.reviewDecision === "APPROVED" || (p.reviewDecision === null && p.mergeable === "MERGEABLE")],
   ["Needs review", () => true],
 ];
-const SHOWN = ["Needs review", "Changes requested", "CI failing", "Merge conflicts", "Ready to merge", "Draft"];
-
-let data;
-
-// Every filter control, kept in the URL so a filtered view can be shared.
-const FIELDS = ["q", "type", "repo", "author", "assignee", "label", "status", "only"];
+const SHOWN = [["Needs review", "warn"], ["Changes requested", "warn"], ["CI failing", "bad"], ["Merge conflicts", "bad"], ["Ready to merge", "ok"], ["Draft", ""]];
 const groupOf = p => GROUPS.find(([, test]) => test(p))[0];
+
+const TABS = [["prs", "Pull requests"], ["issues", "Issues"], ["repos", "Repositories"]];
+// Every filter control, kept in the URL so a filtered view can be shared.
+const FIELDS = ["q", "repo", "author", "assignee", "label", "status", "only"];
+let data, tab = "prs";
 
 function readState() {
   const p = new URLSearchParams(location.search);
   for (const f of FIELDS) $(f).value = p.get(f) || "";
   $("bots").checked = p.get("bots") === "1";
+  tab = TABS.some(([id]) => id === p.get("tab")) ? p.get("tab") : "prs";
 }
 
 function writeState() {
   const p = new URLSearchParams();
+  if (tab !== "prs") p.set("tab", tab);
   for (const f of FIELDS) if ($(f).value) p.set(f, $(f).value);
   if ($("bots").checked) p.set("bots", "1");
   history.replaceState(null, "", p.toString() ? "?" + p : location.pathname);
   for (const f of FIELDS.slice(1)) $(f).classList.toggle("active", !!$(f).value);
+  for (const el of document.querySelectorAll("[data-tabs]")) el.hidden = !el.dataset.tabs.split(" ").includes(tab);
 }
 
 function setFilters(values) {
   for (const f of FIELDS) $(f).value = values[f] || "";
   $("bots").checked = !!values.bots;
+  if (values.tab) tab = values.tab;
   render();
 }
 
@@ -158,97 +245,121 @@ function matches(item) {
   if (v("only") === "untriaged" && (item.labels.length || item.assignees.length)) return false;
   // Every word must match somewhere, so "scorpio renovate" narrows instead of widening.
   const hay = [item.title, item.author, item.repo, `${item.repo}#${item.number}`, "#" + item.number, ...item.assignees, ...item.labels.map(l => l.name)].join(" ").toLowerCase();
-  return v("q").toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+  return words().every(w => hay.includes(w));
+}
+const words = () => $("q").value.toLowerCase().split(/\s+/).filter(Boolean);
+
+function prRow(p) {
+  const stale = ageDays(p.updatedAt) > STALE_DAYS;
+  return `<div class="row pr-row">
+    <div class="chip-cell">${chip(p.repo)}</div>
+    <div class="title"><a href="${esc(p.url)}"><span class="num">#${p.number}</span>${esc(p.title)}</a>${labels(p.labels)}</div>
+    ${person(p.author)}
+    <div class="age${stale ? " stale" : ""}" title="opened ${age(p.createdAt)} ago, updated ${age(p.updatedAt)} ago${stale ? " (stale)" : ""}">${age(p.updatedAt)}</div>
+    <div class="badges">${p.mergeable === "CONFLICTING" ? '<span class="badge b-bad">conflicts</span>' : ""}${ci(p.ci)}</div>
+  </div>`;
+}
+
+function issueRow(i) {
+  const fresh = ageDays(i.createdAt) <= NEW_DAYS;
+  const untriaged = !i.assignees.length && !i.labels.length;
+  return `<div class="row issue-row">
+    <div class="chip-cell">${chip(i.repo)}</div>
+    <div class="title">${fresh ? '<span class="new-dot" title="new"></span>' : ""}<a href="${esc(i.url)}"><span class="num">#${i.number}</span>${esc(i.title)}</a>${labels(i.labels)}${untriaged ? '<span class="badge b-warn" style="margin-left:6px">untriaged</span>' : ""}</div>
+    ${person(i.author)}
+    <div class="avs-cell">${i.assignees.length ? `<span class="avs" title="${esc(i.assignees.join(", "))}">${i.assignees.map(avatar).join("")}</span>` : '<span class="muted" style="font-size:12.5px">unassigned</span>'}</div>
+    <div class="age" title="opened ${age(i.createdAt)} ago, ${i.comments} comments">${age(i.createdAt)}</div>
+  </div>`;
+}
+
+const empty = what => `<div class="empty">No ${what} match these filters.</div>`;
+
+function renderPrs(prs) {
+  const grouped = Object.fromEntries(SHOWN.map(([g]) => [g, []]));
+  for (const p of prs) grouped[groupOf(p)].push(p);
+  const html = SHOWN.filter(([g]) => grouped[g].length).map(([g, tone]) =>
+    `<details ${g === "Draft" && $("status").value !== "Draft" ? "" : "open"}><summary>${g}<span class="count ${tone}">${grouped[g].length}</span></summary>${grouped[g].map(prRow).join("")}</details>`).join("");
+  return html || empty("pull requests");
+}
+
+function renderIssues(issues) {
+  if (!issues.length) return empty("issues");
+  const fresh = issues.filter(i => ageDays(i.createdAt) <= NEW_DAYS), older = issues.filter(i => ageDays(i.createdAt) > NEW_DAYS);
+  return [[`New in the last ${NEW_DAYS} days`, fresh, "accent"], ["Older", older, ""]].filter(([, l]) => l.length).map(([title, list, tone]) =>
+    `<details open><summary>${title}<span class="count ${tone}">${list.length}</span></summary>${list.map(issueRow).join("")}</details>`).join("");
+}
+
+function renderRepos(repos) {
+  if (!repos.length) return empty("repositories");
+  const rows = repos.map(r => `<tr>
+    <td><button type="button" class="link" data-repo="${esc(r.name)}" title="Show PRs of ${esc(r.name)}">${chip(r.name)}</button></td>
+    <td class="desc">${esc(r.description || "")}</td>
+    <td class="r"><a href="${esc(r.url)}/pulls">${r.openPrs}</a></td>
+    <td class="r"><a href="${esc(r.url)}/issues">${r.openIssues}</a></td>
+    <td>${r.mainCi ? ci(r.mainCi) : '<span class="badge b-none">no CI</span>'}</td>
+    <td>${r.release ? `<a href="${esc(r.release.url)}">${esc(r.release.tag)}</a>${r.release.prerelease ? ' <span class="badge b-none">pre</span>' : ""} <span class="muted">· ${age(r.release.publishedAt)}</span>` : '<span class="muted">no release</span>'}</td>
+    <td class="r">${r.commitsSinceRelease == null ? '<span class="muted">-</span>' : r.commitsSinceRelease > 0 ? `<span class="badge b-warn">${r.commitsSinceRelease}</span>` : '<span class="muted">0</span>'}</td>
+    <td class="r"><a href="${esc(r.url)}" title="Open on GitHub" aria-label="Open ${esc(r.name)} on GitHub">↗</a></td>
+  </tr>`).join("");
+  return `<div class="table"><table><thead><tr><th>Repository</th><th>Description</th><th class="r">PRs</th><th class="r">Issues</th><th>Main</th><th>Latest release</th><th class="r">Unreleased</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function render() {
+  writeState();
+  const status = $("status").value;
+  const prs = data.prs.filter(p => ($("bots").checked || !p.bot) && matches(p) && (!status || groupOf(p) === status));
+  const issues = data.issues.filter(matches).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const repos = data.repos.filter(r => (!$("repo").value || r.name === $("repo").value) && words().every(w => `${r.name} ${r.description || ""}`.toLowerCase().includes(w)));
+  const counts = { prs: prs.length, issues: issues.length, repos: repos.length };
+
+  $("tabs").innerHTML = TABS.map(([id, name]) => `<button type="button" class="tab" role="tab" data-tab="${id}" aria-selected="${id === tab}">${name}<span class="n">${counts[id]}</span></button>`).join("");
+  $("view").innerHTML = tab === "prs" ? renderPrs(prs) : tab === "issues" ? renderIssues(issues) : renderRepos(repos);
+  $("count").textContent = `${prs.length} PRs · ${issues.length} issues · ${repos.length} repos`;
+
+  // Tiles count the unfiltered state (except repo), so they stay a stable overview.
+  const repoOnly = x => !$("repo").value || x.repo === $("repo").value;
+  const allPrs = data.prs.filter(p => !p.bot && repoOnly(p)), allIssues = data.issues.filter(repoOnly);
+  const n = g => allPrs.filter(p => groupOf(p) === g).length;
+  const redMain = data.repos.filter(r => (r.mainCi === "FAILURE" || r.mainCi === "ERROR") && (!$("repo").value || r.name === $("repo").value));
+  const newIssues = allIssues.filter(i => ageDays(i.createdAt) <= NEW_DAYS).length;
+  const tiles = [
+    [allPrs.length, "open PRs", "", { tab: "prs" }],
+    [n("Needs review"), "need review", n("Needs review") ? "warn" : "", { tab: "prs", status: "Needs review" }],
+    [n("CI failing"), "PRs with failing CI", n("CI failing") ? "bad" : "", { tab: "prs", status: "CI failing" }],
+    [allIssues.length, "open issues", "", { tab: "issues" }],
+    [newIssues, `new issues (${NEW_DAYS} days)`, newIssues ? "accent" : "", { tab: "issues", only: "new" }],
+    [redMain.length, "repos with red main", redMain.length ? "bad" : "", { tab: "repos" }, redMain.map(r => r.name).join(", ")],
+  ];
+  $("stats").innerHTML = tiles.map(([num, label, tone, , hint], i) =>
+    `<button type="button" class="stat${tone ? " tone-" + tone : ""}" data-tile="${i}" title="${esc(hint || "Show these")}"><b>${num}</b><span>${label}</span></button>`).join("");
+  $("stats").onclick = e => {
+    const t = e.target.closest("[data-tile]");
+    if (t) setFilters({ repo: $("repo").value, ...tiles[t.dataset.tile][3] });
+  };
 }
 
 function fillSelect(id, values) {
   $(id).insertAdjacentHTML("beforeend", [...new Set(values)].sort((a, b) => a.localeCompare(b)).map(x => `<option>${esc(x)}</option>`).join(""));
 }
 
-function prRow(p) {
-  const stale = ageDays(p.updatedAt) > STALE_DAYS;
-  return `<div class="row">
-    <div class="title"><a class="repo" href="${esc(p.url)}">${esc(p.repo)}#${p.number}</a> ${esc(p.title)}${labels(p.labels)}
-      <div class="meta">${esc(p.author)} · opened ${age(p.createdAt)} ago · <span class="${stale ? "warn" : ""}">updated ${age(p.updatedAt)} ago${stale ? " (stale)" : ""}</span></div></div>
-    <div class="side">${ci(p.ci)}${p.mergeable === "CONFLICTING" ? ' · <span class="bad">conflicts</span>' : ""}</div>
-  </div>`;
-}
-
-function issueRow(i) {
-  const fresh = ageDays(i.createdAt) <= NEW_DAYS;
-  const triage = !i.assignees.length && !i.labels.length ? ' · <span class="warn">untriaged</span>' : "";
-  return `<div class="row${fresh ? " new" : ""}">
-    <div class="title"><a class="repo" href="${esc(i.url)}">${esc(i.repo)}#${i.number}</a> ${esc(i.title)}${labels(i.labels)}
-      <div class="meta">${esc(i.author)} · opened ${age(i.createdAt)} ago · ${i.comments} comments${triage}</div></div>
-    <div class="side">${i.assignees.length ? esc(i.assignees.join(", ")) : '<span class="muted">unassigned</span>'}</div>
-  </div>`;
-}
-
-function render() {
-  writeState();
-  const type = $("type").value, status = $("status").value;
-  const prs = type === "issues" ? [] : data.prs.filter(p => ($("bots").checked || !p.bot) && matches(p) && (!status || groupOf(p) === status));
-  // A PR status filter is about PRs, so it hides the issues.
-  const issues = type === "prs" || status ? [] : data.issues.filter(matches).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  $("prsection").hidden = type === "issues";
-  $("issuesection").hidden = type === "prs" || !!status;
-  $("count").textContent = `${prs.length} PRs, ${issues.length} issues`;
-
-  const grouped = Object.fromEntries(SHOWN.map(g => [g, []]));
-  for (const p of prs) grouped[groupOf(p)].push(p);
-  $("prs").innerHTML = SHOWN.filter(g => !status || g === status).map(g => `<h3>${g} (${grouped[g].length})</h3><div class="list">${
-    grouped[g].map(prRow).join("") || '<div class="empty">None</div>'}</div>`).join("");
-
-  $("issues").innerHTML = `<div class="list">${issues.map(issueRow).join("") || '<div class="empty">None</div>'}</div>`;
-
-  const newIssues = issues.filter(i => ageDays(i.createdAt) <= NEW_DAYS).length;
-  const redMain = data.repos.filter(r => (r.mainCi === "FAILURE" || r.mainCi === "ERROR") && (!$("repo").value || r.name === $("repo").value));
-  // Each tile sets the filters that show exactly what it counts.
-  const tiles = [
-    [prs.length, "open PRs", { type: "prs" }],
-    [grouped["Needs review"].length, "need review", { status: "Needs review" }],
-    [grouped["CI failing"].length, "PRs with failing CI", { status: "CI failing" }],
-    [issues.length, "open issues", { type: "issues" }],
-    [newIssues, `new issues (${NEW_DAYS} days)`, { type: "issues", only: "new" }],
-    [redMain.length, "repos with red main", null, redMain.map(r => r.name).join(", ")],
-  ];
-  $("stats").innerHTML = tiles.map(([n, label, f, hint], i) => f
-    ? `<button type="button" class="stat" data-tile="${i}"><b>${n}</b>${label}</button>`
-    : `<div class="stat" title="${esc(hint || "")}"><b>${n}</b>${label}</div>`).join("");
-  $("stats").onclick = e => {
-    const t = e.target.closest("[data-tile]");
-    if (t) setFilters({ repo: $("repo").value, ...tiles[t.dataset.tile][2] });
-  };
-}
-
-function renderRepos() {
-  const rows = data.repos.map(r => `<tr>
-    <td><a class="repo" href="${esc(r.url)}">${esc(r.name)}</a></td>
-    <td class="num"><a href="${esc(r.url)}/pulls">${r.openPrs}</a></td>
-    <td class="num"><a href="${esc(r.url)}/issues">${r.openIssues}</a></td>
-    <td>${ci(r.mainCi)}</td>
-    <td>${r.release ? `<a href="${esc(r.release.url)}">${esc(r.release.tag)}</a>${r.release.prerelease ? '<span class="pill">pre</span>' : ""} <span class="muted">${age(r.release.publishedAt)} ago</span>` : '<span class="muted">-</span>'}</td>
-    <td class="num">${r.commitsSinceRelease == null ? '<span class="muted">-</span>' : r.commitsSinceRelease > 0 ? `<span class="warn">${r.commitsSinceRelease}</span>` : 0}</td>
-  </tr>`).join("");
-  $("repos").innerHTML = `<tr><th>Repo</th><th>PRs</th><th>Issues</th><th>Main</th><th>Latest release</th><th>Unreleased commits</th></tr>${rows}`;
-}
-
 fetch("data.json", { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(d => {
     data = d;
-    $("updated").textContent = `${d.repos.length} public repos · updated ${age(d.generatedAt)} ago (${new Date(d.generatedAt).toLocaleString()})`;
+    $("updated").textContent = `${d.repos.length} public repos · updated ${age(d.generatedAt)} ago`;
+    $("updated").title = new Date(d.generatedAt).toLocaleString();
     const items = [...d.prs, ...d.issues];
     fillSelect("repo", d.repos.map(r => r.name));
     fillSelect("author", items.map(i => i.author).filter(Boolean));
     fillSelect("assignee", items.flatMap(i => i.assignees));
     fillSelect("label", items.flatMap(i => i.labels.map(l => l.name)));
-    $("status").insertAdjacentHTML("beforeend", SHOWN.map(g => `<option>${g}</option>`).join(""));
+    $("status").insertAdjacentHTML("beforeend", SHOWN.map(([g]) => `<option>${g}</option>`).join(""));
     readState();
-    renderRepos();
     render();
     for (const id of [...FIELDS, "bots"]) $(id).addEventListener("input", render);
-    $("reset").addEventListener("click", () => setFilters({}));
+    $("reset").addEventListener("click", () => setFilters({ tab }));
+    $("tabs").addEventListener("click", e => { const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; render(); } });
+    $("view").addEventListener("click", e => { const r = e.target.closest("[data-repo]"); if (r) setFilters({ repo: r.dataset.repo, tab: "prs" }); });
     addEventListener("keydown", e => {
       if (e.key === "/" && !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); $("q").focus(); }
     });

@@ -11,7 +11,7 @@ The workflow [`Dashboard`](.github/workflows/pages.yml) runs every 15 minutes, o
 It runs [`collect.sh`](collect.sh), which reads the GitHub GraphQL API and writes `data.json`, and deploys `data.json` with [`index.html`](index.html) to GitHub Pages.
 Private repositories are left out on purpose: the page is public.
 
-The page groups open PRs into: needs review, changes requested, CI failing, merge conflicts, ready to merge and draft.
+The page has three tabs: pull requests (grouped into needs review, changes requested, CI failing, merge conflicts, ready to merge and draft, empty groups hidden), issues (new in the last 7 days first) and repositories (click a repo to see its PRs).
 Issues opened in the last 7 days are highlighted, and issues without labels and assignees are marked as untriaged.
 The repository table shows CI on the default branch, the latest release and the commits on the default branch since that release.
 Filters are kept in the URL, so a filtered view can be shared as a link:
