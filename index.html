@@ -202,7 +202,7 @@ const GROUPS = [
   ["Ready to merge", p => p.reviewDecision === "APPROVED" || (p.reviewDecision === null && p.mergeable === "MERGEABLE")],
   ["Needs review", () => true],
 ];
-const SHOWN = [["Needs review", "warn"], ["Changes requested", "warn"], ["CI failing", "bad"], ["Merge conflicts", "bad"], ["Ready to merge", "ok"], ["Draft", ""]];
+const SHOWN = [["Ready to merge", "ok"], ["Needs review", "warn"], ["Changes requested", "warn"], ["CI failing", "bad"], ["Merge conflicts", "bad"], ["Draft", ""]];
 const groupOf = p => GROUPS.find(([, test]) => test(p))[0];
 
 const TABS = [["prs", "Pull requests"], ["issues", "Issues"], ["repos", "Repositories"]];
