@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Collects open PRs, open issues and release state of every public, non-archived
-# EduIDE repo and prints data.json for index.html. Needs GH_TOKEN (read only).
+# EduIDE repo, plus 12 weeks of PR, issue and deployment activity, and prints
+# data.json for index.html. Needs GH_TOKEN (read only).
 set -euo pipefail
 
 ORG="${ORG:-EduIDE}"
@@ -13,6 +14,7 @@ query($endCursor: String) {
       pageInfo { hasNextPage endCursor }
       nodes {
         name url description
+        deployments(first: 1) { totalCount }
         defaultBranchRef { name target { ... on Commit { statusCheckRollup { state } } } }
         releases(first: 5, orderBy: {field: CREATED_AT, direction: DESC}) {
           nodes { tagName url publishedAt isDraft isPrerelease }
@@ -51,7 +53,51 @@ while IFS=$'\t' read -r name tag branch; do
   ahead=$(jq --arg k "$name" --argjson v "$n" '. + {($k): $v}' <<<"$ahead")
 done < <(jq -r '.[] | select(.defaultBranchRef) | [.name, ([.releases.nodes[] | select(.isDraft | not)][0].tagName // empty), .defaultBranchRef.name] | select(length == 3) | @tsv' <<<"$raw")
 
-jq --argjson ahead "$ahead" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+# Activity of the last 12 weeks: PRs and issues opened or closed in that time.
+since=$(jq -rn 'now - 84 * 86400 | strftime("%Y-%m-%d")')
+# shortcut: search returns at most 1000 results per query, split the window when a query gets close
+EVENTS_QUERY='
+query($q: String!, $endCursor: String) {
+  search(type: ISSUE, query: $q, first: 100, after: $endCursor) {
+    pageInfo { hasNextPage endCursor }
+    nodes {
+      ... on PullRequest { url repository { name } author { login __typename } createdAt closedAt mergedAt }
+      ... on Issue { url repository { name } author { login __typename } createdAt closedAt }
+    }
+  }
+}'
+events=$(for q in "is:pr created:>=$since" "is:pr closed:>=$since" "is:issue created:>=$since" "is:issue closed:>=$since"; do
+  gh api graphql --paginate -f query="$EVENTS_QUERY" -f q="org:$ORG is:public $q" | jq -c '.data.search.nodes[]'
+done | jq -s 'unique_by(.url) | map({
+  type: (if has("mergedAt") then "pr" else "issue" end),
+  repo: .repository.name, author: .author.login, bot: (.author.__typename == "Bot"),
+  createdAt, closedAt, mergedAt
+})')
+
+# Deployments of the last 12 weeks, newest first, paged until we pass the window.
+DEPLOY_QUERY='
+query($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    deployments(first: 100, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
+      pageInfo { hasNextPage endCursor }
+      nodes { environment createdAt latestStatus { state } }
+    }
+  }
+}'
+deployments='[]'
+# The dashboard deploys its own page every 15 minutes, which would drown everything else.
+for name in $(jq -r '.[] | select(.deployments.totalCount > 0 and .name != "dashboard") | .name' <<<"$raw"); do
+  cursor=null
+  while :; do
+    page=$(gh api graphql -f query="$DEPLOY_QUERY" -f owner="$ORG" -f name="$name" -F cursor="$cursor" -q .data.repository.deployments)
+    deployments=$(jq --argjson p "$page" --arg repo "$name" --arg since "$since" \
+      '. + [$p.nodes[] | select(.createdAt >= $since) | {repo: $repo, environment, createdAt, state: .latestStatus.state}]' <<<"$deployments")
+    [ "$(jq --arg since "$since" '.pageInfo.hasNextPage and .nodes[-1].createdAt >= $since' <<<"$page")" = true ] || break
+    cursor=$(jq -r .pageInfo.endCursor <<<"$page")
+  done
+done
+
+jq --argjson ahead "$ahead" --argjson events "$events" --argjson deployments "$deployments" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
   def labels: [.labels.nodes[] | {name, color}];
   {
     generatedAt: $now,
@@ -77,5 +123,7 @@ jq --argjson ahead "$ahead" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
       labels: labels,
       assignees: [.assignees.nodes[].login],
       comments: .comments.totalCount
-    }]
+    }],
+    events: $events,
+    deployments: $deployments
   }' <<<"$raw"
