@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EduIDE Dashboard</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #657084; --line: #e2e5ea;
+  --accent: #2f6fdf; --ok: #1f8a4c; --warn: #b26b00; --bad: #c8322f; --new: #eef4ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11141a; --card: #1a1e26; --text: #e5e8ee; --muted: #9aa3b2; --line: #2b313c;
+    --accent: #6ea0ff; --ok: #4cc27d; --warn: #e2a33a; --bad: #ff6b66; --new: #1d2a42;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 16px; }
+h1 { font-size: 22px; margin: 0; }
+h2 { font-size: 16px; margin: 28px 0 10px; }
+h3 { font-size: 13px; margin: 18px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.muted { color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.stat b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 18px 0 4px; }
+.filters input[type=search], .filters select { font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+.filters input[type=search] { flex: 1 1 220px; }
+.list { background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 8px 12px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.row.new { background: var(--new); }
+.title { min-width: 0; overflow-wrap: anywhere; }
+.meta { font-size: 12px; color: var(--muted); }
+.side { text-align: right; font-size: 12px; white-space: nowrap; }
+.repo { font-weight: 600; color: var(--text); }
+.pill { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--line); margin-left: 4px; }
+.ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+.empty { padding: 10px 12px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+th, td { text-align: left; padding: 7px 10px; border-top: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+@media (max-width: 600px) { .row { grid-template-columns: 1fr; } .side { text-align: left; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>EduIDE Dashboard</h1>
+    <span class="muted" id="updated">Loading...</span>
+  </header>
+  <section class="stats" id="stats"></section>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search title, author, label" aria-label="Search">
+    <select id="repo" aria-label="Repository"><option value="">All repos</option></select>
+    <label><input type="checkbox" id="bots"> Show bot PRs</label>
+  </div>
+
+  <h2>Open pull requests</h2>
+  <div id="prs"></div>
+
+  <h2>Open issues <span class="muted">(newest first, last 7 days highlighted)</span></h2>
+  <div id="issues"></div>
+
+  <h2>Repositories</h2>
+  <div class="tablewrap"><table id="repos"></table></div>
+</main>
+<script>
+const DAY = 864e5;
+const STALE_DAYS = 14, NEW_DAYS = 7;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const ageDays = d => (Date.now() - new Date(d)) / DAY;
+const age = d => {
+  const h = ageDays(d) * 24;
+  return h < 1 ? Math.max(1, Math.round(h * 60)) + "m" : h < 24 ? Math.round(h) + "h" : Math.round(h / 24) + "d";
+};
+const CI = { SUCCESS: ["ok", "CI ok"], FAILURE: ["bad", "CI failing"], ERROR: ["bad", "CI error"], PENDING: ["warn", "CI running"], EXPECTED: ["warn", "CI waiting"] };
+const ci = s => s && CI[s] ? `<span class="${CI[s][0]}">${CI[s][1]}</span>` : `<span class="muted">no CI</span>`;
+const labels = ls => ls.map(l => `<span class="pill" style="border-color:#${esc(l.color)}">${esc(l.name)}</span>`).join("");
+
+// Order matters: a PR lands in the first group it matches.
+const GROUPS = [
+  ["Draft", p => p.isDraft],
+  ["CI failing", p => p.ci === "FAILURE" || p.ci === "ERROR"],
+  ["Merge conflicts", p => p.mergeable === "CONFLICTING"],
+  ["Changes requested", p => p.reviewDecision === "CHANGES_REQUESTED"],
+  ["Ready to merge", p => p.reviewDecision === "APPROVED" || (p.reviewDecision === null && p.mergeable === "MERGEABLE")],
+  ["Needs review", () => true],
+];
+const SHOWN = ["Needs review", "Changes requested", "CI failing", "Merge conflicts", "Ready to merge", "Draft"];
+
+let data;
+
+function readState() {
+  const p = new URLSearchParams(location.search);
+  $("q").value = p.get("q") || "";
+  $("repo").value = p.get("repo") || "";
+  $("bots").checked = p.get("bots") === "1";
+}
+
+function writeState() {
+  const p = new URLSearchParams();
+  if ($("q").value) p.set("q", $("q").value);
+  if ($("repo").value) p.set("repo", $("repo").value);
+  if ($("bots").checked) p.set("bots", "1");
+  history.replaceState(null, "", p.toString() ? "?" + p : location.pathname);
+}
+
+function matches(item) {
+  const q = $("q").value.trim().toLowerCase();
+  const repo = $("repo").value;
+  if (repo && item.repo !== repo) return false;
+  if (!q) return true;
+  return [item.title, item.author, item.repo, "#" + item.number, ...item.labels.map(l => l.name)].join(" ").toLowerCase().includes(q);
+}
+
+function prRow(p) {
+  const stale = ageDays(p.updatedAt) > STALE_DAYS;
+  return `<div class="row">
+    <div class="title"><a class="repo" href="${esc(p.url)}">${esc(p.repo)}#${p.number}</a> ${esc(p.title)}${labels(p.labels)}
+      <div class="meta">${esc(p.author)} · opened ${age(p.createdAt)} ago · <span class="${stale ? "warn" : ""}">updated ${age(p.updatedAt)} ago${stale ? " (stale)" : ""}</span></div></div>
+    <div class="side">${ci(p.ci)}${p.mergeable === "CONFLICTING" ? ' · <span class="bad">conflicts</span>' : ""}</div>
+  </div>`;
+}
+
+function issueRow(i) {
+  const fresh = ageDays(i.createdAt) <= NEW_DAYS;
+  const triage = !i.assignees.length && !i.labels.length ? ' · <span class="warn">untriaged</span>' : "";
+  return `<div class="row${fresh ? " new" : ""}">
+    <div class="title"><a class="repo" href="${esc(i.url)}">${esc(i.repo)}#${i.number}</a> ${esc(i.title)}${labels(i.labels)}
+      <div class="meta">${esc(i.author)} · opened ${age(i.createdAt)} ago · ${i.comments} comments${triage}</div></div>
+    <div class="side">${i.assignees.length ? esc(i.assignees.join(", ")) : '<span class="muted">unassigned</span>'}</div>
+  </div>`;
+}
+
+function render() {
+  writeState();
+  const prs = data.prs.filter(p => ($("bots").checked || !p.bot) && matches(p));
+  const issues = data.issues.filter(matches).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const grouped = Object.fromEntries(SHOWN.map(g => [g, []]));
+  for (const p of prs) grouped[GROUPS.find(([, test]) => test(p))[0]].push(p);
+  $("prs").innerHTML = SHOWN.map(g => `<h3>${g} (${grouped[g].length})</h3><div class="list">${
+    grouped[g].map(prRow).join("") || '<div class="empty">None</div>'}</div>`).join("");
+
+  $("issues").innerHTML = `<div class="list">${issues.map(issueRow).join("") || '<div class="empty">None</div>'}</div>`;
+
+  const newIssues = issues.filter(i => ageDays(i.createdAt) <= NEW_DAYS).length;
+  const redMain = data.repos.filter(r => r.mainCi === "FAILURE" || r.mainCi === "ERROR");
+  $("stats").innerHTML = [
+    [prs.length, "open PRs"],
+    [grouped["Needs review"].length, "need review"],
+    [grouped["CI failing"].length, "PRs with failing CI"],
+    [issues.length, "open issues"],
+    [newIssues, `new issues (${NEW_DAYS} days)`],
+    [redMain.length, "repos with red main", redMain.map(r => r.name).join(", ")],
+  ].map(([n, label, hint]) => `<div class="stat" title="${esc(hint || "")}"><b>${n}</b>${label}</div>`).join("");
+}
+
+function renderRepos() {
+  const rows = data.repos.map(r => `<tr>
+    <td><a class="repo" href="${esc(r.url)}">${esc(r.name)}</a></td>
+    <td class="num"><a href="${esc(r.url)}/pulls">${r.openPrs}</a></td>
+    <td class="num"><a href="${esc(r.url)}/issues">${r.openIssues}</a></td>
+    <td>${ci(r.mainCi)}</td>
+    <td>${r.release ? `<a href="${esc(r.release.url)}">${esc(r.release.tag)}</a>${r.release.prerelease ? '<span class="pill">pre</span>' : ""} <span class="muted">${age(r.release.publishedAt)} ago</span>` : '<span class="muted">-</span>'}</td>
+    <td class="num">${r.commitsSinceRelease == null ? '<span class="muted">-</span>' : r.commitsSinceRelease > 0 ? `<span class="warn">${r.commitsSinceRelease}</span>` : 0}</td>
+  </tr>`).join("");
+  $("repos").innerHTML = `<tr><th>Repo</th><th>PRs</th><th>Issues</th><th>Main</th><th>Latest release</th><th>Unreleased commits</th></tr>${rows}`;
+}
+
+fetch("data.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => {
+    data = d;
+    $("updated").textContent = `${d.repos.length} public repos · updated ${age(d.generatedAt)} ago (${new Date(d.generatedAt).toLocaleString()})`;
+    $("repo").insertAdjacentHTML("beforeend", d.repos.map(r => `<option>${esc(r.name)}</option>`).join(""));
+    readState();
+    renderRepos();
+    render();
+    for (const id of ["q", "repo", "bots"]) $(id).addEventListener("input", render);
+  })
+  .catch(e => { $("updated").textContent = "Could not load data.json: " + e.message; });
+</script>
+</body>
+</html>
