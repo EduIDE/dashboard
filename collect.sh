@@ -23,13 +23,14 @@ query($endCursor: String) {
             number title url createdAt updatedAt isDraft reviewDecision mergeable
             author { login __typename }
             labels(first: 6) { nodes { name color } }
+            assignees(first: 3) { nodes { login } }
             commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
           }
         }
         issues(states: OPEN, first: 50, orderBy: {field: CREATED_AT, direction: DESC}) {
           totalCount
           nodes {
-            number title url createdAt
+            number title url createdAt updatedAt
             author { login }
             labels(first: 6) { nodes { name color } }
             assignees(first: 3) { nodes { login } }
@@ -67,10 +68,11 @@ jq --argjson ahead "$ahead" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
       repo: $repo, number, title, url, createdAt, updatedAt, isDraft, reviewDecision, mergeable,
       author: .author.login, bot: (.author.__typename == "Bot"),
       ci: .commits.nodes[0].commit.statusCheckRollup.state,
-      labels: labels
+      labels: labels,
+      assignees: [.assignees.nodes[].login]
     }],
     issues: [.[] | .name as $repo | .issues.nodes[] | {
-      repo: $repo, number, title, url, createdAt,
+      repo: $repo, number, title, url, createdAt, updatedAt,
       author: .author.login,
       labels: labels,
       assignees: [.assignees.nodes[].login],

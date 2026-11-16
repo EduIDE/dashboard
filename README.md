@@ -14,7 +14,13 @@ Private repositories are left out on purpose: the page is public.
 The page groups open PRs into: needs review, changes requested, CI failing, merge conflicts, ready to merge and draft.
 Issues opened in the last 7 days are highlighted, and issues without labels and assignees are marked as untriaged.
 The repository table shows CI on the default branch, the latest release and the commits on the default branch since that release.
-Filters (search, repo, bot PRs) are kept in the URL, so a filtered view can be shared as a link.
+Filters are kept in the URL, so a filtered view can be shared as a link:
+
+- search (press `/`): every word must match the title, `repo#number`, author, assignee or a label
+- type (PRs, issues), repo, author, assignee (or unassigned), label (or no label), PR status
+- quick filters: new (7 days), stale (no update in 14 days), untriaged (no label, no assignee)
+- bot PRs are hidden unless "Show bot PRs" is ticked
+- the tiles at the top set the filters that show what they count; "Reset" clears everything
 
 ## Run it locally
 
