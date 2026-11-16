@@ -7,7 +7,7 @@ Page: https://eduide.github.io/dashboard/
 ## How it works
 
 There is no server.
-The workflow [`Dashboard`](.github/workflows/pages.yml) runs every 15 minutes, on every push to `main`, and by hand.
+The workflow [`Dashboard`](.github/workflows/pages.yml) runs every hour, on every push to `main`, and by hand.
 It runs [`collect.sh`](collect.sh), which reads the GitHub GraphQL API (open items, plus PRs, issues and deployments of the last 12 weeks) and writes `data.json`, and deploys `data.json` with [`index.html`](index.html) to GitHub Pages.
 Private repositories are left out on purpose: the page is public.
 
@@ -52,5 +52,5 @@ Then open http://127.0.0.1:8000.
 - `collect.sh` reads the first 50 open PRs and issues per repository.
 - The activity search returns at most 1000 results per query; the 12 weeks need about 500 today.
 - Reopened PRs and issues are not tracked, so the rebuilt open counts can be off by those.
-- The dashboard's own Pages deployments are left out, they run every 15 minutes.
+- The dashboard's own Pages deployments are left out, they run every hour.
 - GitHub pauses scheduled workflows after 60 days without activity in this repository; re-enable the workflow in the Actions tab.

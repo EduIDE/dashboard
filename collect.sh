@@ -85,7 +85,7 @@ query($owner: String!, $name: String!, $cursor: String) {
   }
 }'
 deployments='[]'
-# The dashboard deploys its own page every 15 minutes, which would drown everything else.
+# The dashboard deploys its own page every hour, which would drown everything else.
 for name in $(jq -r '.[] | select(.deployments.totalCount > 0 and .name != "dashboard") | .name' <<<"$raw"); do
   cursor=null
   while :; do

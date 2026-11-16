@@ -4,8 +4,8 @@ name: Dashboard
 
 on:
   schedule:
-    # Off the quarter hours, which GitHub often delays or drops under load.
-    - cron: "7,22,37,52 * * * *"
+    # Hourly and off the full hour: the 15-minute schedule was never triggered by GitHub.
+    - cron: "17 * * * *"
   push:
     branches: [main]
   workflow_dispatch:
