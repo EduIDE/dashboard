@@ -4,7 +4,7 @@ name: Dashboard
 
 on:
   schedule:
-    # Hourly and off the full hour: the 15-minute schedule was never triggered by GitHub.
+    # Only a fallback that restarts the chain below: GitHub runs it hours late or skips it.
     - cron: "17 * * * *"
   push:
     branches: [main]
@@ -15,13 +15,10 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency: { group: pages-build, cancel-in-progress: true }
     steps:
       - uses: actions/checkout@v4
       - name: Collect data
@@ -38,9 +35,26 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    concurrency: { group: pages-deploy, cancel-in-progress: true }
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Starts the next refresh, since the schedule above can't be relied on.
+  # The refresh-timer environment has a 55 minute wait timer, which holds this job without using a runner.
+  # A newer run cancels the waiting job, so there is only ever one timer.
+  next:
+    needs: deploy
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: refresh-timer
+    concurrency: { group: pages-timer, cancel-in-progress: true }
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
