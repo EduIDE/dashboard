@@ -8,6 +8,8 @@ Page: https://eduide.github.io/dashboard/
 
 There is no server.
 The workflow [`Dashboard`](.github/workflows/pages.yml) runs every hour, on every push to `main`, and by hand.
+GitHub runs the repository's cron hours late or not at all, so each run starts the next one itself: its last job waits in the `refresh-timer` environment (wait timer 55 minutes, no runner used) and then dispatches the workflow again.
+The cron only restarts this chain if it ever breaks.
 It runs [`collect.sh`](collect.sh), which reads the GitHub GraphQL API (open items, plus PRs, issues and deployments of the last 12 weeks) and writes `data.json`, and deploys `data.json` with [`index.html`](index.html) to GitHub Pages.
 Private repositories are left out on purpose: the page is public.
 
@@ -54,3 +56,4 @@ Then open http://127.0.0.1:8000.
 - Reopened PRs and issues are not tracked, so the rebuilt open counts can be off by those.
 - The dashboard's own Pages deployments are left out, they run every hour.
 - GitHub pauses scheduled workflows after 60 days without activity in this repository; re-enable the workflow in the Actions tab.
+- The `refresh-timer` environment must keep its wait timer: without it the workflow restarts itself right away, every few minutes.
