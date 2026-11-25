@@ -67,7 +67,7 @@ query($q: String!, $endCursor: String) {
   }
 }'
 events=$(for q in "is:pr created:>=$since" "is:pr closed:>=$since" "is:issue created:>=$since" "is:issue closed:>=$since"; do
-  gh api graphql --paginate -f query="$EVENTS_QUERY" -f q="org:$ORG is:public $q" | jq -c '.data.search.nodes[]'
+  gh api graphql --paginate -f query="$EVENTS_QUERY" -f q="org:$ORG is:public archived:false $q" | jq -c '.data.search.nodes[]'
 done | jq -s 'unique_by(.url) | map({
   type: (if has("mergedAt") then "pr" else "issue" end),
   repo: .repository.name, author: .author.login, bot: (.author.__typename == "Bot"),
