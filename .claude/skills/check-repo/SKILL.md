@@ -13,7 +13,8 @@ Which repos are included:
 Steps:
 1. Newest org repos: `gh api 'orgs/EduIDE/repos?sort=created&direction=desc&per_page=10' -q '.[] | "\(.created_at) \(.name) \(.visibility) archived=\(.archived)"'`.
 2. Repos in the live data and when it was built: `curl -s https://eduide.github.io/dashboard/data.json | jq -r '.generatedAt, ([.repos[].name] | join(" "))'`.
-3. Details of one repo: `curl -s https://eduide.github.io/dashboard/data.json | jq '.repos[] | select(.name == "<repo>")'`, and `[.events[] | select(.repo == "<repo>")] | length` for activity.
+3. Details of one repo: `curl -s https://eduide.github.io/dashboard/data.json | jq '.repos[] | select(.name == "<repo>")'`.
+   Activity records (one per PR or issue, which can count as both opened and closed on the page) and deployments: `curl -s https://eduide.github.io/dashboard/data.json | jq '{events: [.events[] | select(.repo == "<repo>")] | length, deployments: [.deployments[] | select(.repo == "<repo>")] | length}'`.
 4. Missing although public and not archived: check that the data is fresh (debug-refresh skill).
 5. Private repos stay out on purpose: the page is public. Do not change that without the maintainer.
-6. Numbers differ from GitHub: compare against the API (`gh pr list --repo EduIDE/<repo> --state open --json number | jq length`) and the limits in the README (50 open items per repo, reopened items not tracked, 1000 search results per query).
+6. Numbers differ from GitHub: compare against the API (`gh api repos/EduIDE/<repo> -q .open_issues_count` counts open PRs and issues together; `gh pr list --repo EduIDE/<repo> --state open -L 1000 --json number | jq length` counts PRs, `gh pr list` alone stops at 30) and the limits in the README (50 open items per repo, reopened items not tracked, 1000 search results per query).
