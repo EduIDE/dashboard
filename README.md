@@ -49,6 +49,11 @@ python3 -m http.server 8000
 
 Then open http://127.0.0.1:8000.
 
+## For agents
+
+[`AGENTS.md`](AGENTS.md) (also read as `CLAUDE.md`) holds the rules for coding agents.
+Skills in [`.claude/skills/`](.claude/skills) cover changing the dashboard, debugging the refresh and checking a repo.
+
 ## Limits
 
 - `collect.sh` reads the first 50 open PRs and issues per repository.
